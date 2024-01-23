@@ -24,6 +24,11 @@ const userSchema = mongoose.Schema({
         required: true,
         trim: true,
     },
+    isEmail : {
+        type: Boolean,
+        required : true,
+        trime : false,
+    }
 });
 
 const User = mongoose.model("User", userSchema);

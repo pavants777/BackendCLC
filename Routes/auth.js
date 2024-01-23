@@ -80,4 +80,11 @@ router.get('/',auth,async (req,res)=>{
    res.json({...user._doc,token : req.user});
 });
 
+
+// Email verification 
+
+router.post('/EmailVerification',auth,async(req,res)=>{
+  
+});
+
 module.exports = router;
