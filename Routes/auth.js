@@ -4,6 +4,7 @@ const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middelwares/auth");
 const User = require("../models/Users");
+const nodemailer = require('nodemailer');
 
 router.post("/app/signup", async (req, res) => {
   try {
@@ -82,9 +83,43 @@ router.get('/',auth,async (req,res)=>{
 
 
 // Email verification 
+// Create a Nodemailer transporter
 
-router.post('/EmailVerification',auth,async(req,res)=>{
+
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: "nodeprojectnode@gmail.com",
+    pass: "hpka yilm zvbf xmjp",
+  }
+});
+
+
+router.post('/EmailVerification',async (req,res)=>{
+  let user = User(req.body);
   
+    if(!user.isEmail){
+
+      const otp =  `${Math.floor(1000 + Math.random()*9000)}`
+
+      var mailOptions = {
+        from: 'nodeprojectnode@gmail.com',
+        to: user.email,
+        subject: 'Verify Your Email',
+        html : `<p> Enter <b> ${otp} </b> in the app to verify your Email address and complete the verification </p>
+        <p> This Code <b> Expires in 1 hours </b> </p>`
+      };
+      
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+          res.status(500).send('Error sending email');
+        } else {
+          console.log('Email sent: ' + info.response);
+          res.status(200).send('Email sent successfully');
+        }
+      });
+    }
 });
 
 module.exports = router;
