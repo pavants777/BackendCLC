@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema({
     isEmail : {
         type: Boolean,
         required : true,
-        trime : false,
+        default: false,
     }
 });
 
