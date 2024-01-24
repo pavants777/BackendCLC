@@ -149,14 +149,16 @@ router.post('/verification',async (req,res)=>{
       throw Error("Account is Invalid or Recoard is Not founded ");
     }
     
-    const expiresAt = UserOtpVerification[0].expiresAt;
-    const orginalOTP = UserOtpVerification[0].otp;
+    const expiresAt = UserOtpVerification[UserOtpVerification.length-1].expiresAt;
+    const orginalOTP = UserOtpVerification[UserOtpVerification.length-1].otp;
 
     if(expiresAt < Date.now()){
       await otpModel.deleteMany({userId});
       throw Error("Otp Expiress, Please Requirest Again");
     }
-
+    console.log(otp == orginalOTP);
+    console.log(otp);
+    console.log(orginalOTP);
     if(otp == orginalOTP){
       await User.updateOne({ email: userId }, { isEmail: true });
        await otpModel.deleteMany({userId});
