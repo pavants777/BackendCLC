@@ -7,3 +7,5 @@ var transporter = nodemailer.createTransport({
     pass: 'Pavants777@'
   }
 });
+
+module.exports = transporter;

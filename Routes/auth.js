@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const auth = require("../middelwares/auth");
 const User = require("../models/Users");
 const nodemailer = require('nodemailer');
+const OtpModel = require("../models/otpVerification");
+const otpModel = require("../models/otpVerification");
 
 router.post("/app/signup", async (req, res) => {
   try {
@@ -95,7 +97,7 @@ var transporter = nodemailer.createTransport({
 });
 
 
-router.post('/EmailVerification',async (req,res)=>{
+router.post('/SendOTP',async (req,res)=>{
   let user = User(req.body);
   
     if(!user.isEmail){
@@ -109,7 +111,15 @@ router.post('/EmailVerification',async (req,res)=>{
         html : `<p> Enter <b> ${otp} </b> in the app to verify your Email address and complete the verification </p>
         <p> This Code <b> Expires in 1 hours </b> </p>`
       };
+
+      const UserOtp = new otpModel({
+         userId : user.email,
+         otp : otp,
+         expiresAt : Date.now()+3600000,
+      });
       
+       await UserOtp.save();
+
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.log(error);
@@ -120,6 +130,42 @@ router.post('/EmailVerification',async (req,res)=>{
         }
       });
     }
+});
+
+
+// Verification of OTP
+
+router.post('/verification',async (req,res)=>{
+ try {
+   
+  const {userId , otp } = req.body;
+
+   if(!userId || !otp){
+      throw Error("Enter Valid Details");
+   }
+    const UserOtpVerification = await otpModel.find({userId});
+    
+    if(UserOtpVerification.length <=0){
+      throw Error("Account is Invalid or Recoard is Not founded ");
+    }
+    
+    const expiresAt = UserOtpVerification[0].expiresAt;
+    const orginalOTP = UserOtpVerification[0].otp;
+
+    if(expiresAt < Date.now()){
+      await otpModel.deleteMany({userId});
+      throw Error("Otp Expiress, Please Requirest Again");
+    }
+
+    if(otp == orginalOTP){
+      await User.updateOne({ email: userId }, { isEmail: true });
+       await otpModel.deleteMany({userId});
+       res.status(200).json({msg : "Email Verified"});
+    } 
+    throw Error("Email Not Verified");
+ } catch (e) {
+     res.status(400).json({error : e.message});
+ }
 });
 
 module.exports = router;
